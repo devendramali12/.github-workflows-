@@ -1,0 +1,31 @@
+name: Update README
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Runs every day at midnight UTC
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Update README content
+        run: |
+          DATE=$(date +"%d %B %Y %H:%M:%S")
+          QUOTE=$(curl -s https://api.quotable.io/random | jq -r '.content')
+          ACTIVITY="No recent activity found." # You can connect GitHub API here later
+
+          sed -i "s|<!--DATE_SECTION-->.*<!--END_DATE_SECTION-->|<!--DATE_SECTION-->Last updated on: $DATE<!--END_DATE_SECTION-->|" README.md
+          sed -i "s|<!--QUOTE_SECTION-->.*<!--END_QUOTE_SECTION-->|<!--QUOTE_SECTION-->$QUOTE<!--END_QUOTE_SECTION-->|" README.md
+          sed -i "s|<!--ACTIVITY_SECTION-->.*<!--END_ACTIVITY_SECTION-->|<!--ACTIVITY_SECTION-->$ACTIVITY<!--END_ACTIVITY_SECTION-->|" README.md
+
+      - name: Commit changes
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add README.md
+          git commit -m "Updated README with latest data"
+          git push
